@@ -92,3 +92,19 @@ python main.py
 - **Interactive Form:** স্লাইডারের মাধ্যমে ইঞ্জিন সাইজ এবং জ্বালানি খরচ নিয়ন্ত্রণ করা যায় ও ড্রপডাউন দিয়ে ফুয়েল ও ট্রান্সমিশন নির্বাচন করা যায়।
 - **Radial Gauge Rating:** প্রেডিকশন রেজাল্ট অনুযায়ী গাড়ির কার্বন লেভেল **Low** (সবুজ), **Moderate** (হলুদ) নাকি **High** (লাল) তা একটি বৃত্তাকার মিটারে রিয়েল-টাইমে কালার কোড সহ দেখায়।
 - **Model Insights Dashboard:** ওয়েব অ্যাপের ভেতর থেকেই ব্যবহারকারীগণ ট্রেইন হওয়া সেরা মডেলটির **Feature Importance**, **Actual vs Predicted** এবং **Residual Plot** সরাসরি ট্যাব অপশনের মাধ্যমে দেখতে পারেন।
+
+---
+
+## 👥 Team Members (দলের সদস্যবৃন্দ)
+
+> **Course:** Artificial Intelligence Lab | **Problem Type:** Supervised Regression
+
+| # | Name | Role | Key Contributions |
+| :---: | :--- | :--- | :--- |
+| 1 | ⭐ **Tahmidul Alam Ahad** | Backend & ML Engineer | Flask web app (`main.py`), ML model pipeline, training & evaluation script (`train.py`), model serialization (`model.pkl`), end-to-end system integration |
+| 2 | ⭐ **Abdur Rahman** | Backend & Data Engineer | Dataset preparation (`prepare_real_dataset.py`), preprocessing pipeline (StandardScaler, OneHotEncoder), Flask routing & form handling, CO₂ classification logic |
+| 3 | **Tawsif Hossen** | Frontend Developer | HTML/CSS design for input form (`index.html`), UI layout and styling, interactive sliders and dropdown elements |
+| 4 | **S.M Sayem** | Frontend & Tester | Result page design (`result.html`), radial gauge indicator, model diagnostics chart tabs, UI testing and debugging |
+| 5 | **Mohammad Tareq Aziz** | Research & Docs | Dataset research and selection, project documentation (`README.md`), report writing, model performance analysis |
+
+> ⭐ **Primary Contributors:** Tahmidul Alam Ahad and Abdur Rahman led the core backend and machine learning development.
