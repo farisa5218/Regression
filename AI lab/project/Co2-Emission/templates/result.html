@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View predicted carbon footprint and machine learning model metrics diagnostics.">
+    <title>Prediction Result - AI CO2 Predictor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(20, 28, 48, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-color: #38bdf8;
+            --font-sans: 'Outfit', 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            /* Emission Level Colors */
+            --low-color: #10b981;
+            --low-bg: rgba(16, 185, 129, 0.1);
+            --low-border: rgba(16, 185, 129, 0.25);
+            --moderate-color: #f59e0b;
+            --moderate-bg: rgba(245, 158, 11, 0.1);
+            --moderate-border: rgba(245, 158, 11, 0.25);
+            --high-color: #ef4444;
+            --high-bg: rgba(239, 68, 68, 0.1);
+            --high-border: rgba(239, 68, 68, 0.25);
+        }
+
+        /* Class bindings */
+        .low-emission {
+            --level-color: var(--low-color);
+            --level-bg: var(--low-bg);
+            --level-border: var(--low-border);
+        }
+
+        .moderate-emission {
+            --level-color: var(--moderate-color);
+            --level-bg: var(--moderate-bg);
+            --level-border: var(--moderate-border);
+        }
+
+        .high-emission {
+            --level-color: var(--high-color);
+            --level-bg: var(--high-bg);
+            --level-border: var(--high-border);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 100%, rgba(56, 189, 248, 0.08) 0, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.08) 0, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 950px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+        }
+
+        .hero-section {
+            display: grid;
+            grid-template-columns: 1.2fr 1.8fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        /* Gauge Ring */
+        .gauge-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto;
+        }
+
+        .circular-progress {
+            width: 200px;
+            height: 200px;
+            transform: rotate(-90deg);
+        }
+
+        .bg-ring {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 14;
+        }
+
+        .progress-ring {
+            fill: none;
+            stroke: var(--level-color);
+            stroke-dasharray: 565; /* 2 * pi * r (r=90) */
+            stroke-dashoffset: calc(565 - (565 * var(--pct)) / 100);
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gauge-label {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emi-value {
+            font-size: 44px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            font-family: var(--font-mono);
+        }
+
+        .emi-unit {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Result Information */
+        .result-details h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--level-bg);
+            border: 1px solid var(--level-border);
+            color: var(--level-color);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 18px;
+        }
+
+        .desc-text {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 14px 26px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            transform: translateX(-4px);
+        }
+
+        /* Features Breakdown Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .detail-item-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .detail-item-val {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* Diagnostic Plots Section */
+        .diagnostics-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 30px;
+            margin-top: 15px;
+        }
+
+        .diagnostics-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tabs-header {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+        }
+
+        .tab-btn.active {
+            color: #0b0f19;
+            background: var(--accent-color);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 15, 26, 0.5);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .diag-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        
+        <!-- Main Result Card -->
+        <div class="card {{ level_class }}" style="--pct: {{ percentage }};">
+            <div class="hero-section">
+                <!-- Gauge ring displaying the CO2 emissions -->
+                <div class="gauge-container">
+                    <svg class="circular-progress" viewBox="0 0 200 200">
+                        <circle class="bg-ring" cx="100" cy="100" r="90"></circle>
+                        <circle class="progress-ring" cx="100" cy="100" r="90"></circle>
+                    </svg>
+                    <div class="gauge-label">
+                        <span class="emi-value">{{ EMI }}</span>
+                        <span class="emi-unit">g/km</span>
+                    </div>
+                </div>
+
+                <!-- Descriptive Information -->
+                <div class="result-details">
+                    <span class="status-badge">Emission: {{ level }}</span>
+                    <h1>CO₂ Carbon Emission</h1>
+                    
+                    {% if level == "Low" %}
+                    <p class="desc-text">
+                        Excellent! This vehicle has a <strong>low carbon footprint</strong>. It belongs to the top environmental efficiency bracket, causing minimal impact on air quality and carbon levels.
+                    </p>
+                    {% elif level == "Moderate" %}
+                    <p class="desc-text">
+                        This vehicle generates a <strong>moderate amount of CO₂ emissions</strong>. While it represents standard combustion figures, implementing fuel-efficient habits can help lower its environmental impact.
+                    </p>
+                    {% else %}
+                    <p class="desc-text">
+                        Warning! This vehicle produces a <strong>high carbon footprint</strong>. Vehicles in this class contribute significantly to greenhouse gas emissions and environmental degradation.
+                    </p>
+                    {% endif %}
+
+                    <a href="/" class="back-button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        <span>Analyze Another Vehicle</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inputs Breakdown Card -->
+        <div class="card">
+            <div class="diagnostics-title" style="margin-bottom: 15px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>
+                <span>Vehicle Specifications Used</span>
+            </div>
+            
+            <div class="details-grid">
+                {% for name, val in features.items() %}
+                <div class="detail-item">
+                    <div class="detail-item-name">{{ name }}</div>
+                    <div class="detail-item-val">{{ val }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Model Insights & Diagnostics -->
+            <div class="diagnostics-section">
+                <div class="diagnostics-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>ML Model Insights & Diagnostics</span>
+                </div>
+                
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="openTab('importance')">Feature Importance</button>
+                    <button class="tab-btn" onclick="openTab('fit')">Actual vs Predicted</button>
+                    <button class="tab-btn" onclick="openTab('residuals')">Residual Analysis</button>
+                </div>
+
+                <div id="importance" class="tab-content active">
+                    <img class="diag-img" src="{{ url_for('static', filename='images/feature_importance.png') }}" alt="Feature Importance Plot">
+                </div>
+
+                <div id="fit" class="tab-content">
+                    <img class="diag-img" src="{{ url_for('static', filename='images/actual_vs_predicted.png') }}" alt="Actual vs Predicted Emission Plot">
+                </div>
+
+                <div id="residuals" class="tab-content">
+                    <img class="diag-img" src="{{ url_for('static', filename='images/residuals.png') }}" alt="Residuals Plot">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tabs Logic JavaScript -->
+    <script>
+        function openTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Deactivate all tab buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Show active tab and button
+            document.getElementById(tabId).classList.add('active');
+            
+            // Find button click target and activate
+            const targetBtn = Array.from(buttons).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

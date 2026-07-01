@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Predict vehicle CO2 emissions based on engine size, cylinders, fuel consumption, and vehicle characteristics using regression models.">
+    <title>AI CO2 Emission Predictor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(20, 28, 48, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            --accent-gradient: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --glow-color: rgba(56, 189, 248, 0.15);
+            --font-sans: 'Outfit', 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.08) 0, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                        0 0 40px var(--glow-color);
+            padding: 40px;
+            max-width: 850px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: var(--accent-color);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 30%, #a5f3fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 24px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .slider-val {
+            color: var(--accent-color);
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        /* Form Inputs Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            margin: 12px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #7dd3fc;
+        }
+
+        select {
+            background-color: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            padding: 14px 16px;
+            font-size: 15px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-sans);
+        }
+
+        select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        select option {
+            background-color: #0f172a;
+            color: var(--text-primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-gradient);
+            color: #0b0f19;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);
+            font-family: var(--font-sans);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(56, 189, 248, 0.45);
+            background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 100%);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .section-divider {
+            grid-column: span 2;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .section-divider {
+                grid-column: span 1;
+            }
+        }
+
+        .section-title {
+            grid-column: span 2;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: -5px;
+        }
+
+        @media (max-width: 768px) {
+            .section-title {
+                grid-column: span 1;
+            }
+        }
+
+        .error-banner {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge">🤖 Advanced XGBoost Regressor</span>
+            <h1 id="main-title">CO₂ Emission Predictor</h1>
+            <p class="subtitle">Enter the vehicle characteristics below to estimate its Carbon Dioxide emission (g/km) using a machine learning model.</p>
+        </div>
+
+        {% if error %}
+        <div class="error-banner">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" id="prediction-form">
+            <div class="form-grid">
+                
+                <!-- Section: Engine Specifications -->
+                <div class="section-title">Engine Specifications</div>
+                
+                <div class="form-group">
+                    <label for="Engine">Engine Size: <span class="slider-val" id="engine-val">2.4 L</span></label>
+                    <input type="range" id="Engine" name="Engine" min="1.0" max="8.4" step="0.1" value="2.4">
+                </div>
+
+                <div class="form-group">
+                    <label for="Cylinders">Cylinders</label>
+                    <select id="Cylinders" name="Cylinders" required>
+                        <option value="3">3 Cylinders</option>
+                        <option value="4" selected>4 Cylinders</option>
+                        <option value="5">5 Cylinders</option>
+                        <option value="6">6 Cylinders</option>
+                        <option value="8">8 Cylinders</option>
+                        <option value="10">10 Cylinders</option>
+                        <option value="12">12 Cylinders</option>
+                    </select>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Section: Vehicle Details -->
+                <div class="section-title">Vehicle Details</div>
+
+                <div class="form-group">
+                    <label for="Fuel_Type">Fuel Type</label>
+                    <select id="Fuel_Type" name="Fuel_Type" required>
+                        <option value="X" selected>Regular Gasoline</option>
+                        <option value="Z">Premium Gasoline</option>
+                        <option value="D">Diesel</option>
+                        <option value="E">Ethanol (E85)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="Vehicle_Class">Vehicle Class</label>
+                    <select id="Vehicle_Class" name="Vehicle_Class" required>
+                        <option value="COMPACT" selected>Compact</option>
+                        <option value="MID-SIZE">Mid-Size</option>
+                        <option value="FULL-SIZE">Full-Size</option>
+                        <option value="SUBCOMPACT">Subcompact</option>
+                        <option value="MINICOMPACT">Minicompact</option>
+                        <option value="TWO-SEATER">Two-Seater</option>
+                        <option value="SUV - SMALL">SUV (Small)</option>
+                        <option value="SUV - STANDARD">SUV (Standard)</option>
+                        <option value="MINIVAN">Minivan</option>
+                        <option value="VAN - CARGO">Van (Cargo)</option>
+                        <option value="VAN - PASSENGER">Van (Passenger)</option>
+                        <option value="PICKUP TRUCK - STANDARD">Pickup Truck (Standard)</option>
+                        <option value="PICKUP TRUCK - SMALL">Pickup Truck (Small)</option>
+                        <option value="SPECIAL PURPOSE VEHICLE">Special Purpose Vehicle</option>
+                        <option value="STATION WAGON - SMALL">Station Wagon (Small)</option>
+                        <option value="STATION WAGON - MID-SIZE">Station Wagon (Mid-Size)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="Transmission">Transmission</label>
+                    <select id="Transmission" name="Transmission" required>
+                        <!-- Grouped commonly used -->
+                        <optgroup label="Automatic (Select Shift)">
+                            <option value="AS6" selected>Automatic Select Shift 6-speed (AS6)</option>
+                            <option value="AS8">Automatic Select Shift 8-speed (AS8)</option>
+                            <option value="AS5">Automatic Select Shift 5-speed (AS5)</option>
+                            <option value="AS7">Automatic Select Shift 7-speed (AS7)</option>
+                            <option value="AS9">Automatic Select Shift 9-speed (AS9)</option>
+                            <option value="AS4">Automatic Select Shift 4-speed (AS4)</option>
+                        </optgroup>
+                        <optgroup label="Manual">
+                            <option value="M6">Manual 6-speed (M6)</option>
+                            <option value="M5">Manual 5-speed (M5)</option>
+                            <option value="M7">Manual 7-speed (M7)</option>
+                        </optgroup>
+                        <optgroup label="Automatic">
+                            <option value="A6">Automatic 6-speed (A6)</option>
+                            <option value="A8">Automatic 8-speed (A8)</option>
+                            <option value="A4">Automatic 4-speed (A4)</option>
+                            <option value="A5">Automatic 5-speed (A5)</option>
+                            <option value="A7">Automatic 7-speed (A7)</option>
+                            <option value="A9">Automatic 9-speed (A9)</option>
+                        </optgroup>
+                        <optgroup label="CVT & Automated Manual">
+                            <option value="AV">Continuously Variable CVT (AV)</option>
+                            <option value="AV7">CVT 7-speed (AV7)</option>
+                            <option value="AV8">CVT 8-speed (AV8)</option>
+                            <option value="AV6">CVT 6-speed (AV6)</option>
+                            <option value="AM7">Automated Manual 7-speed (AM7)</option>
+                            <option value="AM6">Automated Manual 6-speed (AM6)</option>
+                            <option value="AM5">Automated Manual 5-speed (AM5)</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Section: Driving Conditions -->
+                <div class="section-title">Driving Conditions / Fuel Consumption</div>
+
+                <div class="form-group">
+                    <label for="Fuel_Cons_City">City Consumption: <span class="slider-val" id="city-val">10.0 L/100km</span></label>
+                    <input type="range" id="Fuel_Cons_City" name="Fuel_Cons_City" min="4.0" max="30.2" step="0.1" value="10.0">
+                </div>
+
+                <div class="form-group">
+                    <label for="Fuel_Cons_Hwy">Highway Consumption: <span class="slider-val" id="hwy-val">8.0 L/100km</span></label>
+                    <input type="range" id="Fuel_Cons_Hwy" name="Fuel_Cons_Hwy" min="4.0" max="25.0" step="0.1" value="8.0">
+                </div>
+
+            </div>
+
+            <button type="submit" id="submit-btn">
+                <span>Calculate Emission Level</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </form>
+    </div>
+
+    <!-- Sliders Interactive JavaScript -->
+    <script>
+        const engineSlider = document.getElementById('Engine');
+        const engineVal = document.getElementById('engine-val');
+        engineSlider.addEventListener('input', function() {
+            engineVal.textContent = parseFloat(this.value).toFixed(1) + ' L';
+        });
+
+        const citySlider = document.getElementById('Fuel_Cons_City');
+        const cityVal = document.getElementById('city-val');
+        citySlider.addEventListener('input', function() {
+            cityVal.textContent = parseFloat(this.value).toFixed(1) + ' L/100km';
+        });
+
+        const hwySlider = document.getElementById('Fuel_Cons_Hwy');
+        const hwyVal = document.getElementById('hwy-val');
+        hwySlider.addEventListener('input', function() {
+            hwyVal.textContent = parseFloat(this.value).toFixed(1) + ' L/100km';
+        });
+    </script>
+</body>
+
+</html>
