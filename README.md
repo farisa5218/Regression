@@ -105,6 +105,7 @@ python main.py
 | 2 | ⭐ **Abdur Rahman** | Backend & Data Engineer | Dataset preparation (`prepare_real_dataset.py`), preprocessing pipeline (StandardScaler, OneHotEncoder), Flask routing & form handling, CO₂ classification logic |
 | 3 | **Tawsif Hossen** | Frontend Developer | HTML/CSS design for input form (`index.html`), UI layout and styling, interactive sliders and dropdown elements |
 | 4 | **S.M Sayem** | Frontend & Tester | Result page design (`result.html`), radial gauge indicator, model diagnostics chart tabs, UI testing and debugging |
-| 5 | **Mohammad Tareq Aziz** | Research & Docs | Dataset research and selection, project documentation (`README.md`), report writing, model performance analysis |
+| 5 | **Saiful Islam Fahim** | Research & Docs | Dataset research and selection, project documentation (`README.md`), report writing, model performance analysis |
+| 6 | **Mohammad Tareq Aziz** | Team Member | — |
 
 > ⭐ **Primary Contributors:** Tahmidul Alam Ahad and Abdur Rahman led the core backend and machine learning development.
