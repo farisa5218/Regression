@@ -1,7 +1,0 @@
-Best Model: XGBoost
-R2 Score: 0.99694
-Linear Regression -> MAE: 3.569, RMSE: 6.592, R2: 0.98949, MAPE: 1.413
-Ridge Regression -> MAE: 3.813, RMSE: 6.596, R2: 0.98948, MAPE: 1.529
-Decision Tree -> MAE: 2.395, RMSE: 4.353, R2: 0.99542, MAPE: 0.991
-Random Forest -> MAE: 2.152, RMSE: 5.464, R2: 0.99278, MAPE: 0.928
-XGBoost -> MAE: 1.656, RMSE: 3.556, R2: 0.99694, MAPE: 0.711
